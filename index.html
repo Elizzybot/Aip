@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
+    <title>Start Tracking</title>
     <script>
-        fetch('/get-ip')
-        .then(response => response.json())
-        .then(data => {
-            // Automatically send the IP to Telegram when the page loads
-            fetch('/send-ip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ip: data.ip })
+        function sendIP() {
+            fetch('/get-ip')
+            .then(response => response.json())
+            .then(data => {
+                fetch('/send-ip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: data.ip })
+                })
+                .then(response => response.text())
+                .then(message => alert(message));
             });
-        });
+        }
     </script>
 </head>
 <body>
-    <h3>Loading...</h3>
+    <h3>Click the button to send </h3>
+    <button onclick="send()">Start</button>
 </body>
 </html>
