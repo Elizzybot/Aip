@@ -1,36 +1,34 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Tracker</title>
-    <script>
-        // Function to send IP to Telegram bot
-        async function sendIP() {
-            try {
-                // Get IP from an external API
-                let response = await fetch('https://api64.ipify.org?format=json');
-                let data = await response.json();
-                let ip = data.ip;
-
-                // Replace with your Telegram bot token and chat ID
-                const TELEGRAM_BOT_TOKEN = "8070806356:AAG7cqPHaG--aeuAyttsha2m3pdclU27T8U";
-                const TELEGRAM_CHAT_ID = "7182702425";
-
-                // Send IP to Telegram
-                let telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=New visitor IP: ${ip}`;
-                await fetch(telegramUrl);
-
-            } catch (error) {
-                console.error("Failed to send IP:", error);
-            }
-        }
-
-        // Automatically send IP when page loads
-        window.onload = sendIP;
-    </script>
+    <title>WhatsApp Bot Connection</title>
 </head>
 <body>
-    <h3>Welcome</h3>
+    <h2>Connect to the WhatsApp Bot</h2>
+    <form id="connectForm">
+        <label for="phoneNumber">Enter your WhatsApp number:</label>
+        <input type="text" id="phoneNumber" name="phoneNumber" required>
+        <button type="submit">Connect</button>
+    </form>
+    <p id="response"></p>
+
+    <script>
+        document.getElementById('connectForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const phoneNumber = document.getElementById('phoneNumber').value;
+
+            const response = await fetch('/api/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber })
+            });
+
+            const result = await response.json();
+            document.getElementById('response').textContent = result.message || result.error;
+        });
+    </script>
 </body>
 </html>
