@@ -1,36 +1,33 @@
-
-const fs = require('fs');
+const { Low, JSONFile } = require('lowdb');
 const path = require('path');
+
+// Define database file
 const dbPath = path.join(__dirname, 'sessions.json');
+const adapter = new JSONFile(dbPath);
+const db = new Low(adapter);
 
-// Load existing sessions or create an empty file
-let sessions = {};
-if (fs.existsSync(dbPath)) {
-    sessions = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+// Initialize database
+async function initDB() {
+    await db.read();
+    db.data = db.data || { sessions: {} };
+    await db.write();
 }
+initDB();
 
-// Save sessions to file
-function saveSessions() {
-    fs.writeFileSync(dbPath, JSON.stringify(sessions, null, 2));
+// Save sessions
+async function saveSessions() {
+    await db.write();
 }
 
 // Add user session
-function addUserSession(phoneNumber, pairCode) {
-    sessions[phoneNumber] = { pairCode, connected: true };
-    saveSessions();
+async function addUserSession(phoneNumber, pairCode) {
+    db.data.sessions[phoneNumber] = { pairCode, connected: true };
+    await saveSessions();
 }
 
-// Check if a user is connected
+// Check if user is connected
 function isUserConnected(phoneNumber) {
-    return sessions[phoneNumber] && sessions[phoneNumber].connected;
+    return db.data.sessions[phoneNumber]?.connected || false;
 }
 
-// Remove user session
-function removeUserSession(phoneNumber) {
-    if (sessions[phoneNumber]) {
-        delete sessions[phoneNumber];
-        saveSessions();
-    }
-}
-
-module.exports = { addUserSession, isUserConnected, removeUserSession };
+module.exports = { addUserSession, isUserConnected };
