@@ -1,30 +1,41 @@
-
 const express = require('express');
-const { generatePairCode, addPremiumUser } = require('../invansion');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const { sendPairingCode, addUserAsOwner } = require('../whatsappHandler');
 
 const app = express();
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(cors({ origin: '*' }));
 
-app.post('/connect', async (req, res) => {
-    const { phoneNumber } = req.body;
-    if (!phoneNumber) {
-        return res.status(400).json({ error: "Phone number is required" });
-    }
+// Serve index.html (for frontend)
+app.get('/', (req, res) => {
+    const filePath = path.join(__dirname, '..', 'index.html');
 
-    try {
-        // Generate pair code
-        const pairCode = generatePairCode(phoneNumber);
-        
-        // Send the code via WhatsApp (mocked function, integrate actual sending logic)
-        console.log(`Sending pair code ${pairCode} to ${phoneNumber}`);
-
-        // Auto-add user as owner & premium
-        addPremiumUser(phoneNumber);
-
-        res.json({ success: true, message: "Pair code sent successfully!" });
-    } catch (error) {
-        res.status(500).json({ error: "Internal Server Error", details: error.message });
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send("index.html not found. Make sure it's in the root directory.");
     }
 });
 
+// Handle pairing request (WhatsApp connection)
+app.post('/pair', async (req, res) => {
+    const { phoneNumber } = req.body;
+    if (!phoneNumber) {
+        return res.status(400).send("Phone number is required.");
+    }
+
+    try {
+        const pairCode = await sendPairingCode(phoneNumber);
+        await addUserAsOwner(phoneNumber, pairCode);
+        res.send(`Pairing code sent to ${phoneNumber}. Check WhatsApp to complete connection.`);
+    } catch (error) {
+        console.error("Error pairing user:", error);
+        res.status(500).send("Failed to pair. Please try again.");
+    }
+});
+
+// Export the handler for Vercel
 module.exports = app;
