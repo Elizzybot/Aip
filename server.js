@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { sendPairingCode, addUserAsOwner } = require('./whatsappHandler');
 
 const app = express();
@@ -9,20 +11,16 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(cors({ origin: '*' }));
 
-// Serve the homepage with a simple input form
+// Serve index.html directly without needing a folder
 app.get('/', (req, res) => {
-    res.send(`
-        <html>
-        <head><title>WhatsApp Bot Connection</title></head>
-        <body>
-            <h2>Enter your WhatsApp number to connect:</h2>
-            <form action="/pair" method="post">
-                <input type="text" name="phoneNumber" placeholder="Enter WhatsApp number" required/>
-                <button type="submit">Submit</button>
-            </form>
-        </body>
-        </html>
-    `);
+    const filePath = path.join(__dirname, 'index.html');
+    
+    // Check if the file exists before serving
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send("index.html not found. Make sure it's in the same directory as server.js.");
+    }
 });
 
 // Handle pairing request
